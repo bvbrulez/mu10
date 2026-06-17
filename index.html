@@ -284,5 +284,237 @@
         <h1>⚽ Team Spiele & Tabelle</h1>
 
         <div class="content">
-            <!--*
-
+            <!-- Spiele hinzufügen -->
+            <div class="card">
+                <h2>Spiel hinzufügen</h2>
+                <form class="game-form" id="gameForm">
+                    <div class="form-group">
+                        <label for="team1">Team 1:</label>
+                        <input type="text" id="team1" placeholder="z.B. FC Bayern" required>
+                    </div>
+
+                    <div class="form-row">
+                        <input type="number" id="score1" min="0" placeholder="Tore" required style="text-align: center;">
+                        <span style="text-align: center; font-weight: bold;">:</span>
+                        <input type="number" id="score2" min="0" placeholder="Tore" required style="text-align: center;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="team2">Team 2:</label>
+                        <input type="text" id="team2" placeholder="z.B. BVB" required>
+                    </div>
+
+                    <button type="submit">Spiel hinzufügen</button>
+                </form>
+            </div>
+
+            <!-- Spiele Liste -->
+            <div class="card">
+                <h2>Bisherige Spiele</h2>
+                <div class="games-list" id="gamesList">
+                    <div class="no-games">Noch keine Spiele hinzugefügt</div>
+                </div>
+                <button class="reset-btn" onclick="resetAll()">Alle löschen</button>
+            </div>
+
+            <!-- Tabelle -->
+            <div class="card table-wrapper">
+                <h2>Tabelle</h2>
+                <table id="standingsTable">
+                    <thead>
+                        <tr>
+                            <th>Platz</th>
+                            <th>Team</th>
+                            <th>Spiele</th>
+                            <th>Siege</th>
+                            <th>Unentschieden</th>
+                            <th>Niederlagen</th>
+                            <th>Tore</th>
+                            <th>Differenz</th>
+                            <th>Punkte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="standingsBody">
+                        <tr>
+                            <td colspan="9" class="no-games">Keine Daten vorhanden</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Spiele aus localStorage laden
+        let games = JSON.parse(localStorage.getItem('games')) || [];
+
+        // Event Listener für das Formular
+        document.getElementById('gameForm').addEventListener('submit', addGame);
+
+        function addGame(e) {
+            e.preventDefault();
+
+            const team1 = document.getElementById('team1').value.trim();
+            const score1 = parseInt(document.getElementById('score1').value);
+            const score2 = parseInt(document.getElementById('score2').value);
+            const team2 = document.getElementById('team2').value.trim();
+
+            if (!team1 || !team2 || isNaN(score1) || isNaN(score2)) {
+                alert('Bitte alle Felder ausfüllen!');
+                return;
+            }
+
+            games.push({
+                id: Date.now(),
+                team1,
+                score1,
+                team2,
+                score2
+            });
+
+            saveGames();
+            updateUI();
+            document.getElementById('gameForm').reset();
+            document.getElementById('team1').focus();
+        }
+
+        function deleteGame(id) {
+            games = games.filter(game => game.id !== id);
+            saveGames();
+            updateUI();
+        }
+
+        function resetAll() {
+            if (confirm('Möchtest du wirklich alle Spiele löschen?')) {
+                games = [];
+                saveGames();
+                updateUI();
+            }
+        }
+
+        function saveGames() {
+            localStorage.setItem('games', JSON.stringify(games));
+        }
+
+        function calculateStandings() {
+            const standings = {};
+
+            games.forEach(game => {
+                // Team 1
+                if (!standings[game.team1]) {
+                    standings[game.team1] = {
+                        team: game.team1,
+                        played: 0,
+                        wins: 0,
+                        draws: 0,
+                        losses: 0,
+                        goalsFor: 0,
+                        goalsAgainst: 0,
+                        points: 0
+                    };
+                }
+
+                // Team 2
+                if (!standings[game.team2]) {
+                    standings[game.team2] = {
+                        team: game.team2,
+                        played: 0,
+                        wins: 0,
+                        draws: 0,
+                        losses: 0,
+                        goalsFor: 0,
+                        goalsAgainst: 0,
+                        points: 0
+                    };
+                }
+
+                // Update Team 1
+                standings[game.team1].played++;
+                standings[game.team1].goalsFor += game.score1;
+                standings[game.team1].goalsAgainst += game.score2;
+
+                // Update Team 2
+                standings[game.team2].played++;
+                standings[game.team2].goalsFor += game.score2;
+                standings[game.team2].goalsAgainst += game.score1;
+
+                // Determine winner
+                if (game.score1 > game.score2) {
+                    standings[game.team1].wins++;
+                    standings[game.team1].points += 3;
+                    standings[game.team2].losses++;
+                } else if (game.score1 < game.score2) {
+                    standings[game.team2].wins++;
+                    standings[game.team2].points += 3;
+                    standings[game.team1].losses++;
+                } else {
+                    standings[game.team1].draws++;
+                    standings[game.team1].points += 1;
+                    standings[game.team2].draws++;
+                    standings[game.team2].points += 1;
+                }
+            });
+
+            // Convert to array and sort
+            return Object.values(standings).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if ((b.goalsFor - b.goalsAgainst) !== (a.goalsFor - a.goalsAgainst)) {
+                    return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
+                }
+                return b.goalsFor - a.goalsFor;
+            });
+        }
+
+        function updateUI() {
+            updateGamesList();
+            updateStandingsTable();
+        }
+
+        function updateGamesList() {
+            const gamesList = document.getElementById('gamesList');
+
+            if (games.length === 0) {
+                gamesList.innerHTML = '<div class="no-games">Noch keine Spiele hinzugefügt</div>';
+                return;
+            }
+
+            gamesList.innerHTML = games.map(game => `
+                <div class="game-item">
+                    <div class="game-info">
+                        <div class="game-teams">${game.team1} vs ${game.team2}</div>
+                        <div class="game-score">${game.score1} : ${game.score2}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteGame(${game.id})">Löschen</button>
+                </div>
+            `).join('');
+        }
+
+        function updateStandingsTable() {
+            const standings = calculateStandings();
+            const tbody = document.getElementById('standingsBody');
+
+            if (standings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="no-games">Keine Daten vorhanden</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = standings.map((team, index) => `
+                <tr>
+                    <td class="rank">${index + 1}.</td>
+                    <td class="team-name">${team.team}</td>
+                    <td class="stat">${team.played}</td>
+                    <td class="stat">${team.wins}</td>
+                    <td class="stat">${team.draws}</td>
+                    <td class="stat">${team.losses}</td>
+                    <td class="stat">${team.goalsFor}:${team.goalsAgainst}</td>
+                    <td class="stat">${team.goalsFor - team.goalsAgainst > 0 ? '+' : ''}${team.goalsFor - team.goalsAgainst}</td>
+                    <td><span class="points">${team.points}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Initial UI update
+        updateUI();
+    </script>
+</body>
+</html>
