@@ -1,103 +1,182 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: Helvetica, Arial, sans-serif;
-  background: #dcf0f3;
-  color: #2a2a2a;
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
-}
-.container { max-width: 800px; width: 100%; }
+const teamIds = ['team1', 'team2', 'team3', 'team4'];
+const defaults = ['Team A', 'Team B', 'Team C', 'Team D'];
+const medals = ['🥇', '🥈', '🥉'];
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-.header .logo {
-  font-size: 2.5rem;
-  line-height: 1;
-}
-h1 {
-  font-size: 1.5rem;
-  color: #9b0000;
-  margin-bottom: 0.15rem;
-}
-.subtitle {
-  font-size: 0.85rem;
-  color: #025296;
+function esc(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }
 
-.card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(155,0,0,0.1);
-}
-.card h2 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #025296;
+function getTeamName(id) {
+  return document.getElementById(id).value.trim() || '???';
 }
 
-.team-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
-.team-inputs input { padding: 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
-.team-inputs input:focus { border-color: #6daede; }
-
-.matches { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
-.match {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  background: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+function getPairings() {
+  const teams = teamIds.map(id => ({ id, name: getTeamName(id) }));
+  const pairings = [];
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      pairings.push({ home: teams[i], away: teams[j] });
+    }
+  }
+  return pairings;
 }
-.match .team-label { font-weight: 500; min-width: 80px; text-align: center; }
-.match input[type="text"] { width: 48px; padding: 0.35rem; text-align: center; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.9rem; }
-.match input[type="text"]:focus { border-color: #6daede; outline: none; }
-.match .vs { color: #94a3b8; font-size: 0.85rem; }
 
-button {
-  font-family: inherit;
-  padding: 0.65rem 1.5rem;
-  background: #9b0000;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s;
+function renderMatches() {
+  const container = document.getElementById('matches');
+  const pairings = getPairings();
+  container.innerHTML = pairings.map((m, idx) => {
+    const homeId = `score_h_${idx}`;
+    const awayId = `score_a_${idx}`;
+    const storedHome = localStorage.getItem(homeId) || '';
+    const storedAway = localStorage.getItem(awayId) || '';
+    return `
+      <div class="match">
+        <span class="team-label">${esc(m.home.name)}</span>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="${homeId}" value="${storedHome}" placeholder="-">
+        <span class="vs">:</span>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="${awayId}" value="${storedAway}" placeholder="-">
+        <span class="team-label">${esc(m.away.name)}</span>
+      </div>
+    `;
+  }).join('');
 }
-button:hover { background: #e70000; }
-button.secondary { background: #e2e8f0; color: #2a2a2a; }
-button.secondary:hover { background: #cbd5e1; }
-.actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 0.6rem 0.5rem; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
-th { background: #9b0000; font-weight: 600; color: #fff; position: sticky; top: 0; }
-th:first-child, td:first-child { text-align: left; padding-left: 0.75rem; }
-tr:hover td { background: #dcf0f3; }
-.rank { font-weight: 600; width: 32px; }
-.team-name-cell { font-weight: 500; }
-.gold td { background: #fff9e6; }
-.gold td:first-child { border-left: 3px solid #d4a017; }
-.silver td { background: #f5f5f5; }
-.silver td:first-child { border-left: 3px solid #a8a8a8; }
-.bronze td { background: #fef5e7; }
-.bronze td:first-child { border-left: 3px solid #cd7f32; }
-.hidden { display: none !important; }
-.match-error { border-color: #dc2626 !important; background: #fef2f2 !important; }
-.info-text { font-size: 0.85rem; color: #025296; margin-top: 0.75rem; }
-
-@media (max-width: 600px) {
-  body { padding: 1rem; }
-  .match { flex-wrap: wrap; justify-content: center; }
-  .header { flex-direction: column; text-align: center; }
+function saveScore(idx) {
+  const homeEl = document.getElementById(`score_h_${idx}`);
+  const awayEl = document.getElementById(`score_a_${idx}`);
+  if (homeEl) localStorage.setItem(`score_h_${idx}`, homeEl.value);
+  if (awayEl) localStorage.setItem(`score_a_${idx}`, awayEl.value);
 }
+
+function validateScore(val) {
+  return /^\d+$/.test(val);
+}
+
+function klass(i) {
+  if (i === 0) return 'gold';
+  if (i === 1) return 'silver';
+  if (i === 2) return 'bronze';
+  return '';
+}
+
+function rang(i) {
+  if (i < 3) return medals[i];
+  return i + 1;
+}
+
+function berechnen() {
+  const pairings = getPairings();
+  const stats = {};
+  teamIds.forEach(id => {
+    stats[id] = { name: getTeamName(id), sp: 0, s: 0, u: 0, n: 0, gf: 0, ga: 0, pts: 0 };
+  });
+
+  let hasError = false;
+  pairings.forEach((m, idx) => {
+    const hVal = document.getElementById(`score_h_${idx}`).value;
+    const aVal = document.getElementById(`score_a_${idx}`).value;
+
+    if (hVal === '' && aVal === '') return;
+
+    if (!validateScore(hVal) || !validateScore(aVal)) {
+      hasError = true;
+      document.getElementById(`score_h_${idx}`).classList.add('match-error');
+      document.getElementById(`score_a_${idx}`).classList.add('match-error');
+      return;
+    }
+    document.getElementById(`score_h_${idx}`).classList.remove('match-error');
+    document.getElementById(`score_a_${idx}`).classList.remove('match-error');
+
+    const homeScore = parseInt(hVal, 10);
+    const awayScore = parseInt(aVal, 10);
+
+    const h = m.home.id;
+    const a = m.away.id;
+    stats[h].sp++;
+    stats[a].sp++;
+    stats[h].gf += homeScore;
+    stats[h].ga += awayScore;
+    stats[a].gf += awayScore;
+    stats[a].ga += homeScore;
+
+    if (homeScore > awayScore) {
+      stats[h].s++; stats[h].pts += 3;
+      stats[a].n++;
+    } else if (homeScore < awayScore) {
+      stats[a].s++; stats[a].pts += 3;
+      stats[h].n++;
+    } else {
+      stats[h].u++; stats[h].pts += 1;
+      stats[a].u++; stats[a].pts += 1;
+    }
+  });
+
+  if (hasError) {
+    alert('Bitte nur ganze Zahlen (0, 1, 2, ...) eingeben.');
+    return;
+  }
+
+  const sorted = teamIds.slice().sort((a, b) => {
+    if (stats[b].pts !== stats[a].pts) return stats[b].pts - stats[a].pts;
+    const gdA = stats[a].gf - stats[a].ga;
+    const gdB = stats[b].gf - stats[b].ga;
+    if (gdB !== gdA) return gdB - gdA;
+    return stats[b].gf - stats[a].gf;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = sorted.map((id, i) => {
+    const s = stats[id];
+    const gd = s.gf - s.ga;
+    return `
+      <tr class="${klass(i)}">
+        <td class="rank">${rang(i)}</td>
+        <td class="team-name-cell">${esc(s.name)}</td>
+        <td>${s.sp}</td>
+        <td>${s.gf}</td>
+        <td>${s.ga}</td>
+        <td>${gd > 0 ? '+' : ''}${gd}</td>
+        <td><strong>${s.pts}</strong></td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('tableCard').classList.remove('hidden');
+}
+
+function zuruecksetzen() {
+  teamIds.forEach((id, i) => {
+    document.getElementById(id).value = defaults[i];
+  });
+  const pairings = getPairings();
+  pairings.forEach((_, idx) => {
+    const homeEl = document.getElementById(`score_h_${idx}`);
+    const awayEl = document.getElementById(`score_a_${idx}`);
+    if (homeEl) { homeEl.value = ''; localStorage.removeItem(`score_h_${idx}`); }
+    if (awayEl) { awayEl.value = ''; localStorage.removeItem(`score_a_${idx}`); }
+  });
+  document.getElementById('tableCard').classList.add('hidden');
+  renderMatches();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  teamIds.forEach(id => {
+    document.getElementById(id).addEventListener('input', renderMatches);
+  });
+
+  document.getElementById('matches').addEventListener('input', (e) => {
+    const input = e.target;
+    if (input.id && input.id.startsWith('score_')) {
+      input.classList.remove('match-error');
+      const matchIdx = input.id.split('_')[2];
+      saveScore(matchIdx);
+    }
+  });
+
+  document.getElementById('btnCalc').addEventListener('click', berechnen);
+  document.getElementById('btnReset').addEventListener('click', zuruecksetzen);
+
+  renderMatches();
+});
