@@ -12,34 +12,35 @@
         <div class="logo">🏑</div>
         <div>
           <h1>UHC Hamburg · Spieltagsrechner</h1>
-          <p class="subtitle">Feldhockey · 4er-Turnier</p>
+          <p class="subtitle">Feldhockey · Turnier-Modus</p>
         </div>
+        <button id="btnDark" class="btn-icon" title="Dark Mode umschalten" type="button">🌙</button>
       </div>
 
       <div class="card">
         <h2>🏑 Teams</h2>
-        <div class="team-inputs">
-          <input type="text" id="team1" placeholder="Team 1" value="Team A" />
-          <input type="text" id="team2" placeholder="Team 2" value="Team B" />
-          <input type="text" id="team3" placeholder="Team 3" value="Team C" />
-          <input type="text" id="team4" placeholder="Team 4" value="Team D" />
+        <div class="team-controls">
+          <span>Teams:</span>
+          <button id="btnTeamDec" type="button">−</button>
+          <span id="teamCountVal" class="team-count">4</span>
+          <button id="btnTeamInc" type="button">+</button>
         </div>
+        <div class="team-inputs" id="teamInputs"></div>
       </div>
 
       <div class="card">
         <h2>🏑 Spiele · Jeder gegen Jeden</h2>
         <div class="matches" id="matches"></div>
-        <div class="actions" style="margin-top: 1rem">
-          <button id="btnCalc">📊 Tabelle berechnen</button>
-          <button class="secondary" id="btnReset">
-            🔄 Zurücksetzen
-          </button>
+        <div class="actions">
+          <button id="btnCalc">📋 Tabelle kopieren</button>
+          <button class="secondary" id="btnReset">🔄 Ergebnisse löschen</button>
         </div>
+        <div id="errorContainer" class="error-msg"></div>
       </div>
 
       <div class="card hidden" id="tableCard">
         <h2>🏆 Tabelle</h2>
-        <div style="overflow-x: auto">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
@@ -57,7 +58,13 @@
         </div>
         <p class="info-text">🏑 Platz 1 = 🥇 · Sieg = 3 Pkt · Unentschieden = 1 Pkt</p>
       </div>
+
+      <div class="card">
+        <h2>📋 Spielverlauf</h2>
+        <div id="historyList" class="history-list"></div>
+        <button class="secondary" id="btnResetHistory">🗑️ History löschen</button>
+      </div>
     </div>
-    <script src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>
