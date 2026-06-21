@@ -1,75 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UHC-Hamburg mu10 Spieltagsrechner</title>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UHC Spieltagsrechner 🏑</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>🏑 UHC Hamburg mu10 Spieltagsrechner 🏑</h1>
-
-        <div class="content">
-            <!-- Spiele hinzufügen -->
-            <div class="card">
-                <h2>Spiel hinzufügen</h2>
-                <form class="game-form" id="gameForm">
-                    <div class="form-group">
-                        <label for="team1">Team 1:</label>
-                        <input type="text" id="team1" placeholder="z.B. UHC Hamburg" required>
-                        <input type="number" id="score1" min="0" placeholder="Tore" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="team2">Team 2:</label>
-                        <input type="text" id="team2" placeholder="z.B. HTHC" required>
-                        <input type="number" id="score2" min="0" placeholder="Tore" required>
-                    </div>
-
-                    <button type="submit">Spiel hinzufügen</button>
-                </form>
-            </div>
-
-            <!-- Spiele Liste -->
-            <div class="card">
-                <h2>Bisherige Spiele</h2>
-                <div class="games-list" id="gamesList">
-                    <div class="no-games">Noch keine Spiele hinzugefügt</div>
-                </div>
-                <button class="reset-btn" onclick="gameManager.resetAll()">Alle löschen</button>
-            </div>
-
-            <!-- Tabelle -->
-            <div class="card table-wrapper">
-                <h2>Tabelle</h2>
-                <table id="standingsTable">
-                    <thead>
-                        <tr>
-                            <th>Platz</th>
-                            <th>Team</th>
-                            <th>Spiele</th>
-                            <th>Siege</th>
-                            <th>Unentschieden</th>
-                            <th>Niederlagen</th>
-                            <th>Tore</th>
-                            <th>Differenz</th>
-                            <th>Punkte</th>
-                        </tr>
-                    </thead>
-                    <tbody id="standingsBody">
-                        <tr>
-                            <td colspan="9" class="no-games">Keine Daten vorhanden</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+      <div class="header">
+        <div class="logo">🏑</div>
+        <div>
+          <h1>UHC Hamburg · Spieltagsrechner</h1>
+          <p class="subtitle">Feldhockey · 4er-Turnier</p>
         </div>
-    </div>
+      </div>
 
-    <script src="js/gameManager.js"></script>
-    <script src="js/standingsCalculator.js"></script>
-    <script src="js/uiRenderer.js"></script>
+      <div class="card">
+        <h2>🏑 Teams</h2>
+        <div class="team-inputs">
+          <input type="text" id="team1" placeholder="Team 1" value="Team A" />
+          <input type="text" id="team2" placeholder="Team 2" value="Team B" />
+          <input type="text" id="team3" placeholder="Team 3" value="Team C" />
+          <input type="text" id="team4" placeholder="Team 4" value="Team D" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🏑 Spiele · Jeder gegen Jeden</h2>
+        <div class="matches" id="matches"></div>
+        <div class="actions" style="margin-top: 1rem">
+          <button id="btnCalc">📊 Tabelle berechnen</button>
+          <button class="secondary" id="btnReset">
+            🔄 Zurücksetzen
+          </button>
+        </div>
+      </div>
+
+      <div class="card hidden" id="tableCard">
+        <h2>🏆 Tabelle</h2>
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Team</th>
+                <th>Sp</th>
+                <th>+</th>
+                <th>-</th>
+                <th>Diff</th>
+                <th>Pkt</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <p class="info-text">🏑 Platz 1 = 🥇 · Sieg = 3 Pkt · Unentschieden = 1 Pkt</p>
+      </div>
+    </div>
     <script src="js/app.js"></script>
-</body>
+  </body>
 </html>
